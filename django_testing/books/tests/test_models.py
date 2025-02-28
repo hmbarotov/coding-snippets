@@ -32,5 +32,5 @@ class BookModelTests(TestCase):
     def test_model_get_absolute(self):
         self.assertEqual(
             self.book.get_absolute_url(),
-            reverse("books:book-detail", kwargs={"slug": self.book.slug}),
+            reverse("books:book_detail", kwargs={"slug": self.book.slug}),
         )
