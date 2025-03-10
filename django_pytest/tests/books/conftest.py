@@ -15,13 +15,9 @@ def book(db):
 
 
 @pytest.fixture
-def book_list_url():
-    return reverse("books:book_list")
-
-
-@pytest.fixture
-def book_list_response(client, book_list_url):
-    return client.get(book_list_url)
+def book_list_response(client):
+    url = reverse("books:book_list")
+    return client.get(url)
 
 
 @pytest.fixture
