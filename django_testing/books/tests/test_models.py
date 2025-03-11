@@ -14,7 +14,7 @@ class BookModelTests(TestCase):
             slug="django-5-for-beginners-1",
         )
 
-    def test_model_content(self):
+    def test_book_content(self):
         self.assertEqual(self.book.title, "Django 5 for Beginners")
         self.assertEqual(self.book.author, "William S. Vincent")
         self.assertEqual(
@@ -22,14 +22,12 @@ class BookModelTests(TestCase):
             "Learn Django fundamentals while building, testing, and deploying six complete web applications from scratch.",
         )
 
-    def test_model_str(self):
-        self.assertEqual(str(self.book), "Django 5 for Beginners")
-
-    def test_model_slug(self):
+    def test_book_slug(self):
         self.assertEqual(self.book.slug, "django-5-for-beginners")
         self.assertNotEqual(self.book.slug, "django-5-for-beginners-1")
 
-    def test_model_get_absolute(self):
+    def test_book_methods(self):
+        self.assertEqual(str(self.book), "Django 5 for Beginners")
         self.assertEqual(
             self.book.get_absolute_url(),
             reverse("books:book_detail", kwargs={"slug": self.book.slug}),
