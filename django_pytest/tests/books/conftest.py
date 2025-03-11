@@ -21,10 +21,6 @@ def book_list_response(client):
 
 
 @pytest.fixture
-def book_detail_url(book):
-    return reverse("books:book_detail", kwargs={"slug": book.slug})
-
-
-@pytest.fixture
-def book_detail_response(client, book_detail_url):
-    return client.get(book_detail_url)
+def book_detail_response(book, client):
+    url = reverse("books:book_detail", kwargs={"slug": book.slug})
+    return client.get(url)
