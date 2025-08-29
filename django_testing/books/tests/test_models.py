@@ -10,7 +10,7 @@ class BookModelTests(TestCase):
         cls.book = Book.objects.create(
             title="Django 5 for Beginners",
             author="William S. Vincent",
-            description="Learn Django fundamentals while building, testing, and deploying six complete web applications from scratch.",
+            description="Learn Django from scratch",
             slug="django-5-for-beginners-1",
         )
 
@@ -19,7 +19,7 @@ class BookModelTests(TestCase):
         self.assertEqual(self.book.author, "William S. Vincent")
         self.assertEqual(
             self.book.description,
-            "Learn Django fundamentals while building, testing, and deploying six complete web applications from scratch.",
+            "Learn Django from scratch",
         )
 
     def test_book_slug(self):

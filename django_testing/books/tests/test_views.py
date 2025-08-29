@@ -11,7 +11,7 @@ class BookListViewTests(TestCase):
         cls.book = Book.objects.create(
             title="Django 5 for Beginners",
             author="William S. Vincent",
-            description="Learn Django fundamentals while building, testing, and deploying six complete web applications from scratch.",
+            description="Learn Django from scratch.",
         )
         cls.url = reverse("books:book_list")
 
@@ -38,7 +38,7 @@ class BookDetailViewTests(TestCase):
         cls.book = Book.objects.create(
             title="Django 5 for Beginners",
             author="William S. Vincent",
-            description="Learn Django fundamentals while building, testing, and deploying six complete web applications from scratch.",
+            description="Learn Django from scratch.",
         )
         cls.url = reverse("books:book_detail", kwargs={"slug": cls.book.slug})
 
