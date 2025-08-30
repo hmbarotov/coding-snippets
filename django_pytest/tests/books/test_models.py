@@ -6,7 +6,7 @@ def test_book_content(book):
     assert book.author == "William S. Vincent"
     assert (
         book.description
-        == "Learn Django fundamentals while building, testing, and deploying six complete web applications from scratch."
+        == "Learn Django from scratch"
     )
 
 

@@ -9,7 +9,7 @@ def book(db):
     return Book.objects.create(
         title="Django 5 for Beginners",
         author="William S. Vincent",
-        description="Learn Django fundamentals while building, testing, and deploying six complete web applications from scratch.",
+        description="Learn Django from scratch",
         slug="django-5-for-beginners-1",
     )
 
