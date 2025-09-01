@@ -18,9 +18,8 @@ services:
       - ./.env.dev
     depends_on:
       - db
-      - cache
-
-  cache:
+      - cache # new
+  cache: # new
     image: redis:7.2.4
     restart: always
     ports:
@@ -30,6 +29,5 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
-
 volumes:
   postgres_data:
