@@ -49,7 +49,6 @@ def parse_rates_from_html(html):
 
     for item in soup.find_all("div", class_="exchange__item_value")[:5]:
         code = item.strong.text.strip() if item.strong else ""
-        print(item.text)
 
         if code in rates:
             rate_str = item.text.split("=")[1].strip()
@@ -84,7 +83,7 @@ def write_to_excel(file_path, cell, rates):
 def main():
     print(">>> Starting exchange rate fetcher...")
 
-    file_path = r"C:\Users\User\Desktop\FX_Rates.xlsx"
+    file_path = r"\\peter\ZDrive\00016243\Desktop\FX_Rate\excel_files\FX_2026.xlsx"
     rates, date_str = fetch_exchange_rates()
     cell = get_excel_cell_from_date(date_str)
 
@@ -96,4 +95,4 @@ def main():
 
 
 if __name__ == "__main__":
-    print(fetch_exchange_rates())
+    main()
