@@ -4,93 +4,109 @@ import time
 
 import requests
 from bs4 import BeautifulSoup
-
-# Timing the script
-f1 = time.perf_counter()
-
-WORK_DIR = os.getcwd()
-PODCAST_URL = "https://runninginproduction.com/podcast/feed.xml"  # Podcast RSS
-PODCAST_NAME = "Running in Production"  # Podcast name for folder naming
-PODCASTS_TO_DOWNLOAD = 1  # Number of podcasts to download
+from tqdm import tqdm
 
 
 class Podcast:
     """
-    Main class to download podcasts
+    Downloads podcast episodes from an RSS feed concurrently.
+
+    Class attributes:
+        PODCAST_URL: RSS feed URL to scrape.
+        PODCAST_NAME: Used as the download folder name.
+        PODCASTS_TO_DOWNLOAD: Number of episodes to fetch from the feed.
     """
 
-    def __init__(self, url):
+    PODCAST_URL = "https://runninginproduction.com/podcast/feed.xml"
+    PODCAST_NAME = "Running in Production"
+    PODCASTS_TO_DOWNLOAD = 108
+
+    def __init__(self, url, name):
+        """
+        Args:
+            url: RSS feed URL.
+            name: Podcast name, used to create the download folder.
+        """
         self.url = url
+        self.folder = os.path.join(os.getcwd(), name)
 
-    def create_folder(self, folder=PODCAST_NAME):
-        """
-        Create a 'downloads' folder.
-        """
-        os.makedirs(folder, exist_ok=True)
-        return os.path.join(WORK_DIR, folder)
+    def setup_folder(self, folder=PODCAST_NAME):
+        """Create the download folder if it doesn't already exist."""
+        os.makedirs(self.folder, exist_ok=True)
 
-    def get_podcasts(self, limit=PODCASTS_TO_DOWNLOAD):
+    def get_episodes(self, limit=PODCASTS_TO_DOWNLOAD):
         """
-        Scrape the RSS feed and get podcasts
-        """
-        page = requests.get(self.url)
-        soup = BeautifulSoup(page.content, "xml")
-        podcasts = soup.find_all("item", limit=limit)
-        return podcasts
+        Fetch and parse episodes from the RSS feed.
 
-    def get_size(self, length):
-        """
-        Get the size of a podcast, in MB
-        """
-        return round(length / (1024**2), 2)
+        Args:
+            limit: Maximum number of episodes to retrieve.
 
-    def convert_to_valid_name(self, string):
+        Returns:
+            A list of BeautifulSoup Tag objects, one per episode.
         """
-        Convert podcast names to valid filenames
+        response = requests.get(self.url)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.content, "xml")
+        return soup.find_all("item", limit=limit)
+
+    def to_filename(self, string):
         """
-        filename = (
-            "".join(c for c in string if c.isalnum() or c in " -_.#&").strip() + ".mp3"
-        )
-        return os.path.splitext(filename)[0]
+        Sanitize a string into a valid filename by stripping illegal characters.
 
-    def download_podcast(self, podcast):
+        Args:
+            string: Raw episode title string.
+
+        Returns:
+            A filename-safe string with only alphanumerics and ' -_.#&' allowed.
         """
-        Download podcasts using threading
+        return "".join(c for c in string if c.isalnum() or c in " -_.#&").strip()
+
+    def download_episode(self, item):
+        """
+        Download a single episode and save it as an MP3.
+
+        Intended to be called concurrently via ThreadPoolExecutor.
+
+        Args:
+            item: A BeautifulSoup Tag object representing an RSS <item>.
+
+        Returns:
+            A summary string with the filename and size, e.g. '#001 - Title (45.2 MB)'.
         """
 
-        title = podcast.find("itunes:title").text or podcast.find("title").text
-        episode = int(podcast.find("itunes:episode").text)
-
-        mp3_url = podcast.find("enclosure")["url"] or podcast.find("link").text
-        mp3_size = self.get_size(int(podcast.find("enclosure")["length"]))
-        file_name = self.convert_to_valid_name(f"#{episode:03d} - {title}")
-        folder = self.create_folder()
-
-        print(f">>> Downloading {file_name} ({mp3_size} MB)")
+        title = item.find("title").text
+        episode = int(item.find("link").text.split("/")[-1].split("-")[0])
+        mp3_url = item.find("enclosure")["url"]
+        mp3_size_mb = round(int(item.find("enclosure")["length"]) / (1024**2), 2)
+        file_name = self.to_filename(f"#{episode:03d} - {title}")
+        file_path = os.path.join(self.folder, f"{file_name}.mp3")
 
         with requests.get(mp3_url, stream=True) as r:
-            r.raise_for_status()  # Ensure the download actually starts
-            with open(os.path.join(folder, f"{file_name}.mp3"), "wb") as f:
-                for data in r.iter_content(chunk_size=8192):
-                    f.write(data)
+            r.raise_for_status()
+            with open(file_path, "wb") as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
 
-        print(f">>> Finished: {file_name}")
+        return f"{file_name} ({mp3_size_mb} MB)"
 
 
 if __name__ == "__main__":
-    print("Starting podcast downloader...")
-    podcast = Podcast(url=PODCAST_URL)
+    start = time.perf_counter()
 
-    # Choose podcasts here by slicing
-    # Choosing the first N podcasts
-    print("Fetching podcast list...")
-    podcasts = podcast.get_podcasts(limit=PODCASTS_TO_DOWNLOAD)
+    podcast = Podcast(url=Podcast.PODCAST_URL, name=Podcast.PODCAST_NAME)
+    podcast.setup_folder()
 
-    print(f"Found {len(podcasts)} podcasts to download.")
-    # Using threading to speed up downloads
+    print("Fetching episode list...")
+    episodes = podcast.get_episodes()
+    print(f"Found {len(episodes)} episodes. Starting download...\n")
+
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        executor.map(podcast.download_podcast, podcasts)
+        futures = {executor.submit(podcast.download_episode, ep): ep for ep in episodes}
+        with tqdm(total=len(futures), unit="episode") as progress:
+            for future in concurrent.futures.as_completed(futures):
+                result = future.result()
+                progress.set_postfix_str(result)
+                progress.update(1)
 
-f2 = time.perf_counter()
-
-print(f"Script finished in {round(f2 - f1, 2)} second(s)")
+    elapsed = round(time.perf_counter() - start, 2)
+    print(f"\nFinished {len(episodes)} episodes in {elapsed}s")
