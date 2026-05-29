@@ -9,3 +9,4 @@ class BookAdmin(admin.ModelAdmin):
     list_filter = ("author", "created_at")
     search_fields = ("title", "author")
     prepopulated_fields = {"slug": ("title",)}
+    

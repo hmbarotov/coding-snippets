@@ -30,5 +30,5 @@ class BookModelTests(TestCase):
         self.assertEqual(str(self.book), "Django 5 for Beginners")
         self.assertEqual(
             self.book.get_absolute_url(),
-            reverse("books:book_detail", kwargs={"slug": self.book.slug}),
+            reverse("books:detail", kwargs={"slug": self.book.slug}),
         )

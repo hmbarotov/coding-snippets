@@ -13,7 +13,7 @@ class BookListViewTests(TestCase):
             author="William S. Vincent",
             description="Learn Django from scratch.",
         )
-        cls.url = reverse("books:book_list")
+        cls.url = reverse("books:list")
 
     def setUp(self):
         self.response = self.client.get(self.url)
@@ -40,7 +40,7 @@ class BookDetailViewTests(TestCase):
             author="William S. Vincent",
             description="Learn Django from scratch.",
         )
-        cls.url = reverse("books:book_detail", kwargs={"slug": cls.book.slug})
+        cls.url = reverse("books:detail", kwargs={"slug": cls.book.slug})
 
     def setUp(self):
         self.response = self.client.get(self.url)
